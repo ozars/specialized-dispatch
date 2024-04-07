@@ -1,9 +1,11 @@
-# specialized-dispatch &emsp; [![GitHub Actions Workflow Status]][gh-workflow] [![Crates.io Version]][crates-io]
+<h1 align="center">specialized-dispatch</h1>
 
-[Github Actions Workflow Status]: https://img.shields.io/github/actions/workflow/status/ozars/specialized-dispatch/rust.yml
-[gh-workflow]: https://github.com/ozars/specialized-dispatch/actions/workflows/rust.yml
-[Crates.io Version]: https://img.shields.io/crates/v/specialized-dispatch
-[crates-io]: https://crates.io/crates/specialized-dispatch
+<p align="center">
+  <a href="https://github.com/ozars/specialized-dispatch"><img alt="Github Repository" src="https://img.shields.io/badge/ozars%2Fspecialized--dispatch-8da0cb?style=for-the-badge&logo=github&label=github"></a>
+  <a href="https://crates.io/crates/specialized-dispatch"><img alt="crates.io Version" src="https://img.shields.io/crates/v/specialized-dispatch?style=for-the-badge&logo=rust"></a>
+  <a href="https://docs.rs/specialized-dispatch/latest/specialized_dispatch/"><img alt="docs.rs Documentation" src="https://img.shields.io/docsrs/specialized-dispatch?style=for-the-badge&logo=docs.rs"></a>
+  <a href="https://github.com/ozars/specialized-dispatch/actions/workflows/rust.yml"><img alt="Github Actions Build" src="https://img.shields.io/github/actions/workflow/status/ozars/specialized-dispatch/rust.yml?style=for-the-badge&logo=github-actions"></a>
+</p>
 
 This crate provides a procedural macro, `specialized_dispatch`, a convenient
 way to implement different behaviors based on type of an expression.
