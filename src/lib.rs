@@ -199,7 +199,7 @@ impl ToTokens for SpecializedDispatchExpr {
                     trait_impls.extend(quote! {
                         impl<#c> #trait_name<#t #g> for #t #g {
                             default fn dispatch(#arg_name: #arg_type) -> #to_type {
-                    #body
+                                #body
                             }
                         }
                     });
