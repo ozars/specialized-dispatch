@@ -41,9 +41,12 @@ fn example<Arg>(arg: Arg) -> String {
     )
 }
 
-assert_eq!(example(1.0), "default value");
-assert_eq!(example(5u8), "u8: 5");
-assert_eq!(example(10u16), "u16: 10");
+fn main() {
+    assert_eq!(example(1.0), "default value");
+    assert_eq!(example(5u8), "u8: 5");
+    assert_eq!(example(10u16), "u16: 10");
+    println!("Done!");
+}
 ```
 
 `example` function roughly expands to below code. Note that exact expansion is internal
@@ -77,4 +80,13 @@ fn example<T>(t: T) -> String {
     <Arg as SpecializedDispatchCall<Arg>>::dispatch(arg)
 }
 ```
+
+The example above is [included][simple_example] in the repository.
+
+It can be run with `cargo run --example simple_example`.
+
+Expanded code can be inspected using [`cargo-expand`]: `cargo expand --example simple_example`.
+
+[simple_example]: examples/simple_example.rs
+[`cargo-expand`]: https://crates.io/crates/cargo-expand
 
