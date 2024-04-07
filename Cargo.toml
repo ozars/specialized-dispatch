@@ -1,6 +1,6 @@
 [package]
 name = "specialized-dispatch"
-description = "A procedural macro for dispatching specialized versions of a function"
+description = "A library for dispatching specialized versions of a function"
 version = "0.1.0"
 authors = ["Omer Ozarslan"]
 edition = "2021"

@@ -1,4 +1,7 @@
-# specialized-dispatch
+# specialized-dispatch &emsp; [![Crates.io Version]][Crates.io Link]
+
+[Crates.io Version]: https://img.shields.io/crates/v/specialized-dispatch
+[Crates.io Link]: https://crates.io/crates/specialized-dispatch
 
 This crate provides a procedural macro, `specialized_dispatch`, a convenient
 way to implement different behaviors based on type of an expression.
