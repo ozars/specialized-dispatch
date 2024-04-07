@@ -1,7 +1,9 @@
-# specialized-dispatch &emsp; [![Crates.io Version]][Crates.io Link]
+# specialized-dispatch &emsp; [![GitHub Actions Workflow Status]][gh-workflow] [![Crates.io Version]][crates-io]
 
+[Github Actions Workflow Status]: https://img.shields.io/github/actions/workflow/status/ozars/specialized-dispatch/rust.yml
+[gh-workflow]: https://github.com/ozars/specialized-dispatch/actions/workflows/rust.yml
 [Crates.io Version]: https://img.shields.io/crates/v/specialized-dispatch
-[Crates.io Link]: https://crates.io/crates/specialized-dispatch
+[crates-io]: https://crates.io/crates/specialized-dispatch
 
 This crate provides a procedural macro, `specialized_dispatch`, a convenient
 way to implement different behaviors based on type of an expression.
