@@ -129,3 +129,20 @@ It can be run with `cargo run --example trait_bound` or inspected with
 
 [trait_bound]: examples/trait_bound.rs
 
+## Limitations
+
+### Requires nightly
+
+This is due to relying on `min_specialization` feature.
+
+### Only concrete types are supported for specialization
+
+Specialization can be used only with concrete types (e.g. subtraits cannot be
+used for specialization). This is an existing limitation inherited from the
+current implementation of `min_specialization` feature.
+
+### No variables other than the argument can be referred
+
+The macro expands its arms to some method implementations. As such, it cannot
+refer to other variables in the scope where it's called from.
+
