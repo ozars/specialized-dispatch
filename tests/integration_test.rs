@@ -8,7 +8,7 @@ fn test_example() {
         specialized_dispatch!(
             arg,
             Arg -> String,
-            fn <T>(_: T) => format!("default value"),
+            default fn <T>(_: T) => format!("default value"),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
         )
@@ -27,7 +27,7 @@ fn test_example_different_order() {
             Arg -> String,
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
-            fn <T>(_: T) => format!("default value"),
+            default fn <T>(_: T) => format!("default value"),
         )
     }
 
@@ -43,14 +43,14 @@ fn test_multiple_calls_in_same_scope() {
         u8 -> &'static str,
         fn (_: u8) => "u8",
         fn (_: u16) => "u16",
-        fn <T>(_: T) => "other",
+        default fn <T>(_: T) => "other",
     );
     let s2 = specialized_dispatch!(
         0u16,
         u16 -> &'static str,
         fn (_: u8) => "u8",
         fn (_: u16) => "u16",
-        fn <T>(_: T) => "other",
+        default fn <T>(_: T) => "other",
     );
     assert_eq!(format!("{}-{}", s1, s2), "u8-u16");
 }
@@ -63,7 +63,7 @@ fn test_bound_traits() {
         specialized_dispatch!(
             arg,
             Arg -> String,
-            fn <T: Display + Debug>(v: T) => format!("default value: {}", v),
+            default fn <T: Display + Debug>(v: T) => format!("default value: {}", v),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
         )
@@ -86,7 +86,7 @@ fn test_bound_traits_with_generic() {
         specialized_dispatch!(
             arg,
             Arg -> String,
-            fn <T: Display + GenericTrait<()>>(v: T) => format!("default value: {}", v),
+            default fn <T: Display + GenericTrait<()>>(v: T) => format!("default value: {}", v),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
         )

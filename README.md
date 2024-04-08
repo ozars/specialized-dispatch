@@ -33,7 +33,7 @@ fn example<Arg>(arg: Arg) -> String {
         Arg -> String,
         // Defaut implementation. At least one default value is required.
         // Referring to values other than the argument is not supported.
-        fn <T>(_: T) => format!("default value"),
+        default fn <T>(_: T) => format!("default value"),
         // Specialization for concrete type u8.
         fn (v: u8) => format!("u8: {}", v),
         // Specialization for concrete type u16.
@@ -107,7 +107,7 @@ fn example<Arg: Display>(arg: Arg) -> String {
         arg,
         Arg -> String,
         // Notice the trait bound.
-        fn <T: Display>(v: T) => format!("default value: {}", v),
+        default fn <T: Display>(v: T) => format!("default value: {}", v),
         // Note that specializations also need to satisfy the same bound.
         fn (v: u8) => format!("u8: {}", v),
         fn (v: u16) => format!("u16: {}", v),

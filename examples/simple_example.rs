@@ -10,7 +10,7 @@ fn example<Arg>(arg: Arg) -> String {
         Arg -> String,
         // Defaut implementation. At least one default value is required.
         // Referring to values other than the argument is not supported.
-        fn <T>(_: T) => format!("default value"),
+        default fn <T>(_: T) => format!("default value"),
         // Specialization for concrete type u8.
         fn (v: u8) => format!("u8: {}", v),
         // Specialization for concrete type u16.

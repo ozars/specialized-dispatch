@@ -8,7 +8,6 @@ use syn::{
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
-    token::Default,
     Expr, GenericParam, Ident, Result, Token, Type,
 };
 
@@ -59,6 +58,7 @@ impl ToTokens for ArgNameExpr {
 /// ```
 #[derive(Debug, Eq, PartialEq)]
 struct DispatchArmExpr {
+    default: Option<Token![default]>,
     generic_params: Option<Punctuated<GenericParam, Token![,]>>,
     arg_name: ArgNameExpr,
     arg_type: Type,
@@ -67,6 +67,7 @@ struct DispatchArmExpr {
 
 impl Parse for DispatchArmExpr {
     fn parse(input: ParseStream) -> Result<Self> {
+        let default = input.parse::<Option<Token![default]>>()?;
         let _ = input.parse::<Token![fn]>()?;
         let generic_params = if input.peek(Token![<]) {
             let _ = input.parse::<Token![<]>()?;
@@ -88,6 +89,7 @@ impl Parse for DispatchArmExpr {
         let _ = input.parse::<Token![=>]>()?;
         let body = input.parse()?;
         Ok(Self {
+            default,
             generic_params,
             arg_name,
             arg_type,
@@ -150,7 +152,7 @@ fn generate_trait_declaration(trait_name: &Ident, return_type: &Type) -> TokenSt
 /// Generates implementation of the helper trait for specialized dispatch arms. This covers both
 /// generic case(s) and concrete case(s).
 fn generate_trait_implementation(
-    default: Option<Token![default]>,
+    default: Option<&Token![default]>,
     trait_name: &Ident,
     generic_params: Option<&Punctuated<GenericParam, Token![,]>>,
     arg_type: &Type,
@@ -184,14 +186,7 @@ impl ToTokens for SpecializedDispatchExpr {
 
         for arm in &self.arms {
             trait_impls.extend(generate_trait_implementation(
-                // TODO(ozars): Make `default` come from the macro declaration instead of inferring
-                // it here. This will be a breaking change, but that should be fine since the crate
-                // is a toddler anyway. Aim for 0.2.0.
-                if arm.generic_params.is_some() {
-                    Some(Default::default())
-                } else {
-                    None
-                },
+                arm.default.as_ref(),
                 &trait_name,
                 arm.generic_params.as_ref(),
                 &arm.arg_type,
@@ -233,6 +228,7 @@ mod tests {
         assert_eq!(
             arm,
             DispatchArmExpr {
+                default: None,
                 generic_params: None,
                 arg_name: parse_quote!(v),
                 arg_type: parse_quote!(u8),
@@ -243,10 +239,11 @@ mod tests {
 
     #[test]
     fn parse_arm_with_generic_type() {
-        let arm: DispatchArmExpr = parse_quote!(fn <T>(_: T) => format!("default value"));
+        let arm: DispatchArmExpr = parse_quote!(default fn <T>(_: T) => format!("default value"));
         assert_eq!(
             arm,
             DispatchArmExpr {
+                default: Some(Default::default()),
                 generic_params: Some(parse_quote!(T)),
                 arg_name: parse_quote!(_),
                 arg_type: parse_quote!(T),
@@ -260,7 +257,7 @@ mod tests {
         let expr: SpecializedDispatchExpr = parse_quote! {
             arg,
             Arg -> String,
-            fn <T>(_: T) => format!("default value"),
+            default fn <T>(_: T) => format!("default value"),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
         };
@@ -272,18 +269,21 @@ mod tests {
                 to_type: parse_quote!(String),
                 arms: vec![
                     DispatchArmExpr {
+                        default: Some(Default::default()),
                         generic_params: Some(parse_quote!(T)),
                         arg_name: parse_quote!(_),
                         arg_type: parse_quote!(T),
                         body: parse_quote!(format!("default value")),
                     },
                     DispatchArmExpr {
+                        default: None,
                         generic_params: None,
                         arg_name: parse_quote!(v),
                         arg_type: parse_quote!(u8),
                         body: parse_quote!(format!("u8: {}", v)),
                     },
                     DispatchArmExpr {
+                        default: None,
                         generic_params: None,
                         arg_name: parse_quote!(v),
                         arg_type: parse_quote!(u16),
