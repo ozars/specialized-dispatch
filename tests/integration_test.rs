@@ -96,3 +96,32 @@ fn test_bound_traits_with_generic() {
     assert_eq!(example(5u8), "u8: 5");
     assert_eq!(example(10u16), "u16: 10");
 }
+
+#[test]
+fn test_with_lifetimes() {
+    #[allow(dead_code)]
+    struct MyArg<'a>(&'a str);
+
+    trait MyTrait<'t> {}
+
+    impl<'t> MyTrait<'t> for MyArg<'t> {}
+    impl<'t> MyTrait<'t> for f32 {}
+    impl<'t> MyTrait<'t> for u8 {}
+    impl<'t> MyTrait<'t> for u16 {}
+
+    fn example<'t, T: MyTrait<'t>>(arg: T) -> String {
+        specialized_dispatch!(
+            arg,
+            T -> String,
+            default fn <'t, T: MyTrait<'t>>(_: T) => format!("default value"),
+            fn <'x>(_: MyArg<'x>) => format!("my arg"),
+            fn (_: u8) => format!("u8"),
+            fn (_: u16) => format!("u16"),
+        )
+    }
+
+    assert_eq!(example(MyArg::<'static>("hello")), "my arg");
+    assert_eq!(example(1.0), "default value");
+    assert_eq!(example(5u8), "u8");
+    assert_eq!(example(10u16), "u16");
+}
