@@ -51,8 +51,10 @@ fn main() {
 
 > [!WARNING]
 > The above call convention for `specialized_dispatch` macro is currently
-> evolving and not yet stable. Please refer to the doc.rs documentation for the
-> specific version of the crate you're using to ensure right call convention.
+> evolving and in development. Please refer to [the documentation] for released
+> versions to ensure right call convention.
+>
+> [the documentation]: https://docs.rs/specialized-dispatch
 
 `example` function roughly expands to below code. Note that exact expansion is internal
 implementation detail. This example is provided to demonstrate how it works under the
