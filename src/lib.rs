@@ -112,29 +112,44 @@ impl Parse for DispatchArmExpr {
 /// ```
 #[derive(Debug, Eq, PartialEq)]
 struct SpecializedDispatchExpr {
-    arg_expr: Expr,
     from_type: Type,
     to_type: Type,
     arms: Vec<DispatchArmExpr>,
+    arg_expr: Expr,
+}
+
+fn parse_punctuated_arms(input: &ParseStream) -> Result<Punctuated<DispatchArmExpr, Token![,]>> {
+    let mut arms = Punctuated::new();
+    loop {
+        if input.peek(Token![default]) || input.peek(Token![fn]) {
+            arms.push(input.parse()?);
+        } else {
+            break;
+        }
+        if input.peek(Token![,]) && (input.peek2(Token![default]) || input.peek2(Token![fn])) {
+            let _ = input.parse::<Token![,]>()?;
+        } else {
+            break;
+        }
+    }
+    Ok(arms)
 }
 
 impl Parse for SpecializedDispatchExpr {
     fn parse(input: ParseStream) -> Result<Self> {
-        // Parse first argument.
-        let arg_expr = input.parse()?;
-        let _ = input.parse::<Token![,]>()?;
         let from_type = input.parse()?;
         let _ = input.parse::<Token![->]>()?;
         let to_type = input.parse()?;
         let _ = input.parse::<Token![,]>()?;
-        let arms = Punctuated::<DispatchArmExpr, Token![,]>::parse_terminated(input)?
-            .into_iter()
-            .collect();
+        let arms = parse_punctuated_arms(&input)?.into_iter().collect();
+        let _ = input.parse::<Token![,]>()?;
+        let arg_expr = input.parse()?;
+        let _ = input.parse::<Token![,]>().ok();
         Ok(Self {
-            arg_expr,
             from_type,
             to_type,
             arms,
+            arg_expr,
         })
     }
 }
@@ -255,16 +270,15 @@ mod tests {
     #[test]
     fn parse_specialized_dispatch_expr() {
         let expr: SpecializedDispatchExpr = parse_quote! {
-            arg,
             Arg -> String,
             default fn <T>(_: T) => format!("default value"),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
+            arg,
         };
         assert_eq!(
             expr,
             SpecializedDispatchExpr {
-                arg_expr: parse_quote!(arg),
                 from_type: parse_quote!(Arg),
                 to_type: parse_quote!(String),
                 arms: vec![
@@ -290,6 +304,7 @@ mod tests {
                         body: parse_quote!(format!("u16: {}", v)),
                     },
                 ],
+                arg_expr: parse_quote!(arg),
             }
         );
     }

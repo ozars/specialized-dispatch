@@ -27,8 +27,6 @@ use specialized_dispatch::specialized_dispatch;
 
 fn example<Arg>(arg: Arg) -> String {
     specialized_dispatch!(
-        // The argument to the dispatched function. This can be an arbitrary expression.
-        arg,
         // Type of the argument -> return type.
         Arg -> String,
         // Defaut implementation. At least one default value is required.
@@ -38,6 +36,8 @@ fn example<Arg>(arg: Arg) -> String {
         fn (v: u8) => format!("u8: {}", v),
         // Specialization for concrete type u16.
         fn (v: u16) => format!("u16: {}", v),
+        // The argument to the dispatched function. This can be an arbitrary expression.
+        arg,
     )
 }
 
@@ -111,13 +111,13 @@ use specialized_dispatch::specialized_dispatch;
 // The argument type must also bind to the same trait.
 fn example<Arg: Display>(arg: Arg) -> String {
     specialized_dispatch!(
-        arg,
         Arg -> String,
         // Notice the trait bound.
         default fn <T: Display>(v: T) => format!("default value: {}", v),
         // Note that specializations also need to satisfy the same bound.
         fn (v: u8) => format!("u8: {}", v),
         fn (v: u16) => format!("u16: {}", v),
+        arg,
     )
 }
 

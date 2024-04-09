@@ -7,13 +7,13 @@ use specialized_dispatch::specialized_dispatch;
 // The argument type must also bind to the same trait.
 fn example<Arg: Display>(arg: Arg) -> String {
     specialized_dispatch!(
-        arg,
         Arg -> String,
         // Notice the trait bound.
         default fn <T: Display>(v: T) => format!("default value: {}", v),
         // Note that specializations also need to satisfy the same bound.
         fn (v: u8) => format!("u8: {}", v),
         fn (v: u16) => format!("u16: {}", v),
+        arg,
     )
 }
 

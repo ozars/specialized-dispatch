@@ -6,11 +6,11 @@ use specialized_dispatch::specialized_dispatch;
 fn test_example() {
     fn example<Arg>(arg: Arg) -> String {
         specialized_dispatch!(
-            arg,
             Arg -> String,
             default fn <T>(_: T) => format!("default value"),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
+            arg,
         )
     }
 
@@ -23,11 +23,11 @@ fn test_example() {
 fn test_example_different_order() {
     fn example<Arg>(arg: Arg) -> String {
         specialized_dispatch!(
-            arg,
             Arg -> String,
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
             default fn <T>(_: T) => format!("default value"),
+            arg,
         )
     }
 
@@ -39,18 +39,18 @@ fn test_example_different_order() {
 #[test]
 fn test_multiple_calls_in_same_scope() {
     let s1 = specialized_dispatch!(
-        0u8,
         u8 -> &'static str,
         fn (_: u8) => "u8",
         fn (_: u16) => "u16",
         default fn <T>(_: T) => "other",
+        0u8,
     );
     let s2 = specialized_dispatch!(
-        0u16,
         u16 -> &'static str,
         fn (_: u8) => "u8",
         fn (_: u16) => "u16",
         default fn <T>(_: T) => "other",
+        0u16,
     );
     assert_eq!(format!("{}-{}", s1, s2), "u8-u16");
 }
@@ -61,11 +61,11 @@ fn test_bound_traits() {
 
     fn example<Arg: Display + Debug>(arg: Arg) -> String {
         specialized_dispatch!(
-            arg,
             Arg -> String,
             default fn <T: Display + Debug>(v: T) => format!("default value: {}", v),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
+            arg,
         )
     }
 
@@ -84,11 +84,11 @@ fn test_bound_traits_with_generic() {
 
     fn example<Arg: Display + GenericTrait<()>>(arg: Arg) -> String {
         specialized_dispatch!(
-            arg,
             Arg -> String,
             default fn <T: Display + GenericTrait<()>>(v: T) => format!("default value: {}", v),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
+            arg,
         )
     }
 

@@ -4,8 +4,6 @@ use specialized_dispatch::specialized_dispatch;
 
 fn example<Arg>(arg: Arg) -> String {
     specialized_dispatch!(
-        // The argument to the dispatched function. This can be an arbitrary expression.
-        arg,
         // Type of the argument -> return type.
         Arg -> String,
         // Defaut implementation. At least one default value is required.
@@ -15,6 +13,8 @@ fn example<Arg>(arg: Arg) -> String {
         fn (v: u8) => format!("u8: {}", v),
         // Specialization for concrete type u16.
         fn (v: u16) => format!("u16: {}", v),
+        // The argument to the dispatched function. This can be an arbitrary expression.
+        arg,
     )
 }
 
