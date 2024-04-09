@@ -25,19 +25,20 @@ which this macro is called.
 
 use specialized_dispatch::specialized_dispatch;
 
-fn example<Arg>(arg: Arg) -> String {
+fn example<E>(expr: E) -> String {
     specialized_dispatch!(
-        // Type of the argument -> return type.
-        Arg -> String,
+        // Type of the expression -> return type.
+        E -> String,
         // Defaut implementation. At least one default value is required.
-        // Referring to values other than the argument is not supported.
+        // Referring to values other than the provided argument is not
+        // supported.
         default fn <T>(_: T) => format!("default value"),
         // Specialization for concrete type u8.
         fn (v: u8) => format!("u8: {}", v),
         // Specialization for concrete type u16.
         fn (v: u16) => format!("u16: {}", v),
-        // The argument to the dispatched function. This can be an arbitrary expression.
-        arg,
+        // The expression for passing to above specializations.
+        expr,
     )
 }
 
@@ -61,7 +62,7 @@ implementation detail. This example is provided to demonstrate how it works unde
 hood.
 
 ```rust
-fn example<T>(t: T) -> String {
+fn example<E>(expr: E) -> String {
     trait SpecializedDispatchCall<T> {
         fn dispatch(t: T) -> String;
     }
@@ -84,7 +85,7 @@ fn example<T>(t: T) -> String {
         }
     }
 
-    <Arg as SpecializedDispatchCall<Arg>>::dispatch(arg)
+    <E as SpecializedDispatchCall<E>>::dispatch(expr)
 }
 ```
 
@@ -108,16 +109,16 @@ use std::fmt::Display;
 
 use specialized_dispatch::specialized_dispatch;
 
-// The argument type must also bind to the same trait.
-fn example<Arg: Display>(arg: Arg) -> String {
+// The expression type must also bind to the same trait.
+fn example<E: Display>(expr: E) -> String {
     specialized_dispatch!(
-        Arg -> String,
+        E -> String,
         // Notice the trait bound.
         default fn <T: Display>(v: T) => format!("default value: {}", v),
         // Note that specializations also need to satisfy the same bound.
         fn (v: u8) => format!("u8: {}", v),
         fn (v: u16) => format!("u16: {}", v),
-        arg,
+        expr,
     )
 }
 

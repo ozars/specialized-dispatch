@@ -4,13 +4,13 @@ use specialized_dispatch::specialized_dispatch;
 
 #[test]
 fn test_example() {
-    fn example<Arg>(arg: Arg) -> String {
+    fn example<E>(expr: E) -> String {
         specialized_dispatch!(
-            Arg -> String,
+            E -> String,
             default fn <T>(_: T) => format!("default value"),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
-            arg,
+            expr,
         )
     }
 
@@ -21,13 +21,13 @@ fn test_example() {
 
 #[test]
 fn test_example_different_order() {
-    fn example<Arg>(arg: Arg) -> String {
+    fn example<E>(expr: E) -> String {
         specialized_dispatch!(
-            Arg -> String,
+            E -> String,
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
             default fn <T>(_: T) => format!("default value"),
-            arg,
+            expr,
         )
     }
 
@@ -59,13 +59,13 @@ fn test_multiple_calls_in_same_scope() {
 fn test_bound_traits() {
     use std::fmt::{Debug, Display};
 
-    fn example<Arg: Display + Debug>(arg: Arg) -> String {
+    fn example<E: Display + Debug>(expr: E) -> String {
         specialized_dispatch!(
-            Arg -> String,
+            E -> String,
             default fn <T: Display + Debug>(v: T) => format!("default value: {}", v),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
-            arg,
+            expr,
         )
     }
 
@@ -82,13 +82,13 @@ fn test_bound_traits_with_generic() {
     impl GenericTrait<()> for u8 {}
     impl GenericTrait<()> for u16 {}
 
-    fn example<Arg: Display + GenericTrait<()>>(arg: Arg) -> String {
+    fn example<E: Display + GenericTrait<()>>(expr: E) -> String {
         specialized_dispatch!(
-            Arg -> String,
+            E -> String,
             default fn <T: Display + GenericTrait<()>>(v: T) => format!("default value: {}", v),
             fn (v: u8) => format!("u8: {}", v),
             fn (v: u16) => format!("u16: {}", v),
-            arg,
+            expr,
         )
     }
 
