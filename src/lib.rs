@@ -11,15 +11,16 @@ use syn::{
     Expr, GenericParam, Ident, Result, Token, Type,
 };
 
-/// Parses either an identifier or an underscore for the input expression in arms of specialized
-/// dispatch macro.
+/// Parses either an identifier or an underscore for arguments of specializations.
+// TODO(ozars): Make this accept patterns for unpacking arguments. Maybe switch to using
+// `syn::PatType`.
 #[derive(Debug, Eq, PartialEq)]
-enum InputExprName {
+enum FnArgName {
     Ident(Ident),
     Underscore(Token![_]),
 }
 
-impl Parse for InputExprName {
+impl Parse for FnArgName {
     fn parse(input: ParseStream) -> Result<Self> {
         if input.peek(Ident) {
             Ok(Self::Ident(input.parse()?))
@@ -31,12 +32,28 @@ impl Parse for InputExprName {
     }
 }
 
-impl ToTokens for InputExprName {
+impl ToTokens for FnArgName {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         match self {
             Self::Ident(ident) => ident.to_tokens(tokens),
             Self::Underscore(underscore) => underscore.to_tokens(tokens),
         }
+    }
+}
+
+/// Function argument with name and type.
+#[derive(Debug, Eq, PartialEq)]
+struct FnArg {
+    name: FnArgName,
+    ty: Type,
+}
+
+impl Parse for FnArg {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let name = input.parse()?;
+        let _ = input.parse::<Token![:]>()?;
+        let ty = input.parse()?;
+        Ok(Self { name, ty })
     }
 }
 
@@ -60,8 +77,7 @@ impl ToTokens for InputExprName {
 struct DispatchArmExpr {
     default: Option<Token![default]>,
     generic_params: Option<Punctuated<GenericParam, Token![,]>>,
-    input_expr_name: InputExprName,
-    input_expr_type: Type,
+    input_expr: FnArg,
     body: Expr,
 }
 
@@ -80,9 +96,7 @@ impl Parse for DispatchArmExpr {
         };
         let input_expr_content;
         let _ = parenthesized!(input_expr_content in input);
-        let input_expr_name = input_expr_content.parse()?;
-        let _ = input_expr_content.parse::<Token![:]>()?;
-        let input_expr_type = input_expr_content.parse()?;
+        let input_expr = input_expr_content.parse()?;
         if !input_expr_content.is_empty() {
             return Err(input_expr_content.error("unexpected token"));
         }
@@ -91,8 +105,7 @@ impl Parse for DispatchArmExpr {
         Ok(Self {
             default,
             generic_params,
-            input_expr_name,
-            input_expr_type,
+            input_expr,
             body,
         })
     }
@@ -116,6 +129,7 @@ struct SpecializedDispatchExpr {
     to_type: Type,
     arms: Vec<DispatchArmExpr>,
     input_expr: Expr,
+    extra_args: Vec<Expr>,
 }
 
 fn parse_punctuated_arms(input: &ParseStream) -> Result<Punctuated<DispatchArmExpr, Token![,]>> {
@@ -145,11 +159,15 @@ impl Parse for SpecializedDispatchExpr {
         let _ = input.parse::<Token![,]>()?;
         let input_expr = input.parse()?;
         let _ = input.parse::<Token![,]>().ok();
+        let extra_args = Punctuated::<Expr, Token![,]>::parse_terminated(input)?
+            .into_iter()
+            .collect();
         Ok(Self {
             from_type,
             to_type,
             arms,
             input_expr,
+            extra_args,
         })
     }
 }
@@ -170,8 +188,10 @@ fn generate_trait_implementation(
     default: Option<&Token![default]>,
     trait_name: &Ident,
     generic_params: Option<&Punctuated<GenericParam, Token![,]>>,
-    input_expr_type: &Type,
-    input_expr_name: &InputExprName,
+    FnArg {
+        name: input_expr_name,
+        ty: input_expr_type,
+    }: &FnArg,
     return_type: &Type,
     body: &Expr,
 ) -> TokenStream2 {
@@ -204,8 +224,7 @@ impl ToTokens for SpecializedDispatchExpr {
                 arm.default.as_ref(),
                 &trait_name,
                 arm.generic_params.as_ref(),
-                &arm.input_expr_type,
-                &arm.input_expr_name,
+                &arm.input_expr,
                 &self.to_type,
                 &arm.body,
             ));
@@ -245,8 +264,7 @@ mod tests {
             DispatchArmExpr {
                 default: None,
                 generic_params: None,
-                input_expr_name: parse_quote!(v),
-                input_expr_type: parse_quote!(u8),
+                input_expr: parse_quote!(v: u8),
                 body: parse_quote!(format!("u8: {}", v)),
             }
         );
@@ -260,8 +278,7 @@ mod tests {
             DispatchArmExpr {
                 default: Some(Default::default()),
                 generic_params: Some(parse_quote!(T)),
-                input_expr_name: parse_quote!(_),
-                input_expr_type: parse_quote!(T),
+                input_expr: parse_quote!(_: T),
                 body: parse_quote!(format!("default value")),
             }
         );
@@ -285,26 +302,73 @@ mod tests {
                     DispatchArmExpr {
                         default: Some(Default::default()),
                         generic_params: Some(parse_quote!(T)),
-                        input_expr_name: parse_quote!(_),
-                        input_expr_type: parse_quote!(T),
+                        input_expr: parse_quote!(_: T),
                         body: parse_quote!(format!("default value")),
                     },
                     DispatchArmExpr {
                         default: None,
                         generic_params: None,
-                        input_expr_name: parse_quote!(v),
-                        input_expr_type: parse_quote!(u8),
+                        input_expr: parse_quote!(v: u8),
                         body: parse_quote!(format!("u8: {}", v)),
                     },
                     DispatchArmExpr {
                         default: None,
                         generic_params: None,
-                        input_expr_name: parse_quote!(v),
-                        input_expr_type: parse_quote!(u16),
+                        input_expr: parse_quote!(v: u16),
                         body: parse_quote!(format!("u16: {}", v)),
                     },
                 ],
                 input_expr: parse_quote!(expr),
+                extra_args: vec![],
+            }
+        );
+    }
+
+    #[test]
+    fn parse_trailing_args() {
+        // TODO(ozars): Make sure argument count is correct across specializations and the call.
+        let expr: SpecializedDispatchExpr = parse_quote! {
+            E -> String,
+            default fn <T>(_: T) => format!("default value"),
+            fn (v: u8) => format!("u8: {}", v),
+            fn (v: u16) => format!("u16: {}", v),
+            expr,
+            1u8,
+            2u16,
+            "bugun_bayram_erken_kalkin_cocuklar",
+        };
+
+        assert_eq!(
+            expr,
+            SpecializedDispatchExpr {
+                from_type: parse_quote!(E),
+                to_type: parse_quote!(String),
+                arms: vec![
+                    DispatchArmExpr {
+                        default: Some(Default::default()),
+                        generic_params: Some(parse_quote!(T)),
+                        input_expr: parse_quote!(_: T),
+                        body: parse_quote!(format!("default value")),
+                    },
+                    DispatchArmExpr {
+                        default: None,
+                        generic_params: None,
+                        input_expr: parse_quote!(v: u8),
+                        body: parse_quote!(format!("u8: {}", v)),
+                    },
+                    DispatchArmExpr {
+                        default: None,
+                        generic_params: None,
+                        input_expr: parse_quote!(v: u16),
+                        body: parse_quote!(format!("u16: {}", v)),
+                    },
+                ],
+                input_expr: parse_quote!(expr),
+                extra_args: vec![
+                    parse_quote!(1u8),
+                    parse_quote!(2u16),
+                    parse_quote!("bugun_bayram_erken_kalkin_cocuklar")
+                ],
             }
         );
     }
