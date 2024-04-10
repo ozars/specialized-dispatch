@@ -16,7 +16,7 @@ use syn::{
 #[derive(Debug, Eq, PartialEq)]
 enum InputExprName {
     Ident(Ident),
-    UnderScore(Token![_]),
+    Underscore(Token![_]),
 }
 
 impl Parse for InputExprName {
@@ -24,7 +24,7 @@ impl Parse for InputExprName {
         if input.peek(Ident) {
             Ok(Self::Ident(input.parse()?))
         } else if input.peek(Token![_]) {
-            Ok(Self::UnderScore(input.parse()?))
+            Ok(Self::Underscore(input.parse()?))
         } else {
             Err(input.error("expected identifier or underscore"))
         }
@@ -35,7 +35,7 @@ impl ToTokens for InputExprName {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         match self {
             Self::Ident(ident) => ident.to_tokens(tokens),
-            Self::UnderScore(underscore) => underscore.to_tokens(tokens),
+            Self::Underscore(underscore) => underscore.to_tokens(tokens),
         }
     }
 }
