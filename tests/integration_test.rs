@@ -96,3 +96,39 @@ fn test_bound_traits_with_generic() {
     assert_eq!(example(5u8), "u8: 5");
     assert_eq!(example(10u16), "u16: 10");
 }
+
+#[test]
+fn test_extra_args() {
+    use std::fmt::Display;
+    fn example<T: Display>(expr: T, arg: u8) -> String {
+        specialized_dispatch!(
+            T -> String,
+            default fn <T: Display>(v: T, arg: u8) => format!("default value: {}, arg: {}", v, arg),
+            fn (v: u8, arg: u8) => format!("u8: {}, arg: {}", v, arg),
+            fn (v: u16, arg: u8) => format!("u16: {}, arg: {}", v, arg),
+            expr, arg,
+        )
+    }
+
+    assert_eq!(example(1.5, 123u8), "default value: 1.5, arg: 123");
+    assert_eq!(example(5u8, 12u8), "u8: 5, arg: 12");
+    assert_eq!(example(10u16, 1u8), "u16: 10, arg: 1");
+}
+
+#[test]
+fn test_extra_args_with_str_arg() {
+    use std::fmt::Display;
+    fn example<T: Display>(expr: T, arg: &str) -> String {
+        specialized_dispatch!(
+            T -> String,
+            default fn <T: Display>(v: T, arg: &str) => format!("default value: {}, arg: {}", v, arg),
+            fn (v: u8, arg: &str) => format!("u8: {}, arg: {}", v, arg),
+            fn (v: u16, arg: &str) => format!("u16: {}, arg: {}", v, arg),
+            expr, arg,
+        )
+    }
+
+    assert_eq!(example(1.5, "ben bir"), "default value: 1.5, arg: ben bir");
+    assert_eq!(example(5u8, "ceviz"), "u8: 5, arg: ceviz");
+    assert_eq!(example(10u16, "agaciyim"), "u16: 10, arg: agaciyim");
+}
