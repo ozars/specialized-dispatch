@@ -78,6 +78,7 @@ struct DispatchArmExpr {
     default: Option<Token![default]>,
     generic_params: Option<Punctuated<GenericParam, Token![,]>>,
     input_expr: FnArg,
+    extra_args: Vec<FnArg>,
     body: Expr,
 }
 
@@ -97,15 +98,21 @@ impl Parse for DispatchArmExpr {
         let input_expr_content;
         let _ = parenthesized!(input_expr_content in input);
         let input_expr = input_expr_content.parse()?;
-        if !input_expr_content.is_empty() {
-            return Err(input_expr_content.error("unexpected token"));
-        }
+        let extra_args = if input_expr_content.peek(Token![,]) {
+            let _ = input_expr_content.parse::<Token![,]>()?;
+            Punctuated::<FnArg, Token![,]>::parse_separated_nonempty(&input_expr_content)?
+                .into_iter()
+                .collect()
+        } else {
+            Vec::new()
+        };
         let _ = input.parse::<Token![=>]>()?;
         let body = input.parse()?;
         Ok(Self {
             default,
             generic_params,
             input_expr,
+            extra_args,
             body,
         })
     }
@@ -265,6 +272,7 @@ mod tests {
                 default: None,
                 generic_params: None,
                 input_expr: parse_quote!(v: u8),
+                extra_args: vec![],
                 body: parse_quote!(format!("u8: {}", v)),
             }
         );
@@ -279,6 +287,7 @@ mod tests {
                 default: Some(Default::default()),
                 generic_params: Some(parse_quote!(T)),
                 input_expr: parse_quote!(_: T),
+                extra_args: vec![],
                 body: parse_quote!(format!("default value")),
             }
         );
@@ -303,18 +312,21 @@ mod tests {
                         default: Some(Default::default()),
                         generic_params: Some(parse_quote!(T)),
                         input_expr: parse_quote!(_: T),
+                        extra_args: vec![],
                         body: parse_quote!(format!("default value")),
                     },
                     DispatchArmExpr {
                         default: None,
                         generic_params: None,
                         input_expr: parse_quote!(v: u8),
+                        extra_args: vec![],
                         body: parse_quote!(format!("u8: {}", v)),
                     },
                     DispatchArmExpr {
                         default: None,
                         generic_params: None,
                         input_expr: parse_quote!(v: u16),
+                        extra_args: vec![],
                         body: parse_quote!(format!("u16: {}", v)),
                     },
                 ],
@@ -329,9 +341,9 @@ mod tests {
         // TODO(ozars): Make sure argument count is correct across specializations and the call.
         let expr: SpecializedDispatchExpr = parse_quote! {
             E -> String,
-            default fn <T>(_: T) => format!("default value"),
-            fn (v: u8) => format!("u8: {}", v),
-            fn (v: u16) => format!("u16: {}", v),
+            default fn <T>(_: T, arg1: u8, arg2: u16, arg3: &str) => format!("default value"),
+            fn (v: u8, arg1: u8, arg2: u16, arg3: &str) => format!("u8: {}", v),
+            fn (v: u16, arg1: u8, arg2: u16, arg3: &str) => format!("u16: {}", v),
             expr,
             1u8,
             2u16,
@@ -348,18 +360,33 @@ mod tests {
                         default: Some(Default::default()),
                         generic_params: Some(parse_quote!(T)),
                         input_expr: parse_quote!(_: T),
+                        extra_args: vec![
+                            parse_quote!(arg1: u8),
+                            parse_quote!(arg2: u16),
+                            parse_quote!(arg3: &str)
+                        ],
                         body: parse_quote!(format!("default value")),
                     },
                     DispatchArmExpr {
                         default: None,
                         generic_params: None,
                         input_expr: parse_quote!(v: u8),
+                        extra_args: vec![
+                            parse_quote!(arg1: u8),
+                            parse_quote!(arg2: u16),
+                            parse_quote!(arg3: &str)
+                        ],
                         body: parse_quote!(format!("u8: {}", v)),
                     },
                     DispatchArmExpr {
                         default: None,
                         generic_params: None,
                         input_expr: parse_quote!(v: u16),
+                        extra_args: vec![
+                            parse_quote!(arg1: u8),
+                            parse_quote!(arg2: u16),
+                            parse_quote!(arg3: &str)
+                        ],
                         body: parse_quote!(format!("u16: {}", v)),
                     },
                 ],
