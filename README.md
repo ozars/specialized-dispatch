@@ -50,13 +50,6 @@ fn main() {
 }
 ```
 
-> [!WARNING]
-> The above call convention for `specialized_dispatch` macro is currently
-> evolving and in development. Please refer to [the documentation] for released
-> versions to ensure right call convention.
->
-> [the documentation]: https://docs.rs/specialized-dispatch
-
 `example` function roughly expands to below code. Note that exact expansion is internal
 implementation detail. This example is provided to demonstrate how it works under the
 hood.
