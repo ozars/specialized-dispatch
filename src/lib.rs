@@ -166,9 +166,10 @@ impl Parse for SpecializedDispatchExpr {
 /// Generates local helper trait declaration that will be used for specialized dispatch.
 fn generate_trait_declaration(
     trait_name: &Ident,
-    extra_args: Vec<FnArg>,
+    extra_args: &[FnArg],
     return_type: &Type,
 ) -> TokenStream2 {
+    // TODO(ozars): Consider passing generic types from the default specialization as well.
     let tpl = Ident::new("T", Span2::mixed_site());
     quote! {
         trait #trait_name<#tpl> {
@@ -217,11 +218,11 @@ impl ToTokens for SpecializedDispatchExpr {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let trait_name = Ident::new("SpecializedDispatchCall", Span2::mixed_site());
         let mut trait_impls = TokenStream2::new();
-        let mut extra_args = Vec::new();
+        let mut extra_args = None;
 
         for arm in &self.arms {
-            if arm.default.is_some() {
-                extra_args.clone_from(&arm.extra_args);
+            if arm.default.is_some() && extra_args.is_none() {
+                extra_args = Some(&arm.extra_args);
             }
             trait_impls.extend(generate_trait_implementation(
                 arm.default.as_ref(),
@@ -234,7 +235,11 @@ impl ToTokens for SpecializedDispatchExpr {
             ));
         }
 
-        let trait_decl = generate_trait_declaration(&trait_name, extra_args, &self.to_type);
+        let trait_decl = generate_trait_declaration(
+            &trait_name,
+            extra_args.unwrap_or(&Vec::new()),
+            &self.to_type,
+        );
 
         let dispatch_call = generate_dispatch_call(
             &self.from_type,
