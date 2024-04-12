@@ -54,7 +54,7 @@ fn main() {
 internal implementation detail. This example is provided to demonstrate how it
 works under the hood.
 
-```rust
+```rust,ignore
 fn example<E>(expr: E) -> String {
     trait SpecializedDispatchCall<T> {
         fn dispatch(t: T) -> String;
