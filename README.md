@@ -92,6 +92,45 @@ simple_example`.
 [simple_example]: examples/simple_example.rs
 [`cargo-expand`]: https://crates.io/crates/cargo-expand
 
+## Passing Arguments
+
+Arguments can be passed to specializations, however, argument types need to
+declared explicitly (i.e. they won't be captured automatically as it happens
+with closures).
+
+```rust
+#![feature(min_specialization)]
+
+use std::fmt::Display;
+
+use specialized_dispatch::specialized_dispatch;
+
+fn example<T: Display>(expr: T, arg: &str) -> String {
+    specialized_dispatch!(
+        T -> String,
+        default fn <T: Display>(v: T, arg: &str) => {
+            format!("default value: {}, arg: {}", v, arg)
+        },
+        fn (v: u8, arg: &str) => format!("u8: {}, arg: {}", v, arg),
+        fn (v: u16, arg: &str) => format!("u16: {}, arg: {}", v, arg),
+        expr, arg,
+    )
+}
+
+fn main() {
+    assert_eq!(example(1.5, "I'm a"), "default value: 1.5, arg: I'm a");
+    assert_eq!(example(5u8, "walnut"), "u8: 5, arg: walnut");
+    assert_eq!(example(10u16, "tree"), "u16: 10, arg: tree");
+}
+```
+
+Likewise, the example above is [included][pass_args] in the repository.
+
+It can be run with `cargo run --example pass_args` or inspected with
+`cargo-expand`.
+
+[trait_bound]: examples/pass_args.rs
+
 ## Trait Bounds
 
 Trait bounds can be provided for the default case:
@@ -143,8 +182,10 @@ Specialization can be used only with concrete types (e.g. subtraits cannot be
 used for specialization). This is an existing limitation inherited from the
 current implementation of `min_specialization` feature.
 
-### No variables other than the argument can be referred
+### Variables aren't captured automatically
 
 The macro expands its arms to some method implementations. As such, it cannot
 refer to other variables in the scope where it's called from.
 
+However, extra arguments can be passed when they are explicitly declared in the
+macro. Please refer to [Passing Arguments](#passing-arguments) section.
