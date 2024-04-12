@@ -131,9 +131,9 @@ It can be run with `cargo run --example trait_bound` or inspected with
 
 [trait_bound]: examples/trait_bound.rs
 
-## Passing Arguments
+## Passing Extra Arguments
 
-Arguments can be passed to specializations, however, argument types need to
+Extra arguments can be passed to specializations. Argument types need to
 declared explicitly (i.e. they won't be captured automatically as it happens
 with closures).
 
@@ -164,10 +164,11 @@ fn main() {
 }
 ```
 
-Likewise, the example above is [included][pass_args] in the repository.
+Specialization still happens based on the first argument only.
 
-It can be run with `cargo run --example pass_args` or inspected with
-`cargo-expand`.
+As with previous examples, the example above is [included][pass_args] in the
+repository as well. It can be run with `cargo run --example pass_args` or
+inspected with `cargo-expand`.
 
 [pass_args]: examples/pass_args.rs
 
@@ -189,4 +190,5 @@ The macro expands its arms to some method implementations. As such, it cannot
 refer to other variables in the scope where it's called from.
 
 However, extra arguments can be passed when they are explicitly declared in the
-macro. Please refer to [Passing Arguments](#passing-arguments) section.
+macro. Please refer to [Passing Extra Arguments](#passing-extra-arguments)
+section.
