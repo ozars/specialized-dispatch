@@ -9,7 +9,9 @@ fn example<Arg: Display>(arg: Arg) -> String {
     specialized_dispatch!(
         Arg -> String,
         // Notice the trait bound.
-        default fn <T: Display>(v: T) => format!("default value: {}", v),
+        default fn <T: Display>(v: T) => {
+            format!("default value: {}", v)
+        },
         // Note that specializations also need to satisfy the same bound.
         fn (v: u8) => format!("u8: {}", v),
         fn (v: u16) => format!("u16: {}", v),

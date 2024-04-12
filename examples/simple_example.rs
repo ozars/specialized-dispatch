@@ -6,9 +6,7 @@ fn example<E>(expr: E) -> String {
     specialized_dispatch!(
         // Type of the expression -> return type.
         E -> String,
-        // Defaut implementation. At least one default value is required.
-        // Referring to values other than the provided argument is not
-        // supported.
+        // Defaut implementation.
         default fn <T>(_: T) => format!("default value"),
         // Specialization for concrete type u8.
         fn (v: u8) => format!("u8: {}", v),

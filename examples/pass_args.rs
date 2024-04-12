@@ -20,4 +20,5 @@ fn main() {
     assert_eq!(example(1.5, "I'm a"), "default value: 1.5, arg: I'm a");
     assert_eq!(example(5u8, "walnut"), "u8: 5, arg: walnut");
     assert_eq!(example(10u16, "tree"), "u16: 10, arg: tree");
+    println!("Done!");
 }

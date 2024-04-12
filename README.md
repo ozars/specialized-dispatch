@@ -29,9 +29,7 @@ fn example<E>(expr: E) -> String {
     specialized_dispatch!(
         // Type of the expression -> return type.
         E -> String,
-        // Defaut implementation. At least one default value is required.
-        // Referring to values other than the provided argument is not
-        // supported.
+        // Defaut implementation.
         default fn <T>(_: T) => format!("default value"),
         // Specialization for concrete type u8.
         fn (v: u8) => format!("u8: {}", v),
@@ -108,7 +106,9 @@ fn example<E: Display>(expr: E) -> String {
     specialized_dispatch!(
         E -> String,
         // Notice the trait bound.
-        default fn <T: Display>(v: T) => format!("default value: {}", v),
+        default fn <T: Display>(v: T) => {
+            format!("default value: {}", v)
+        },
         // Note that specializations also need to satisfy the same bound.
         fn (v: u8) => format!("u8: {}", v),
         fn (v: u16) => format!("u16: {}", v),
@@ -160,6 +160,7 @@ fn main() {
     assert_eq!(example(1.5, "I'm a"), "default value: 1.5, arg: I'm a");
     assert_eq!(example(5u8, "walnut"), "u8: 5, arg: walnut");
     assert_eq!(example(10u16, "tree"), "u16: 10, arg: tree");
+    println!("Done!");
 }
 ```
 
