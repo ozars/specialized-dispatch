@@ -122,6 +122,7 @@ struct SpecializedDispatchExpr {
     extra_args: Vec<Expr>,
 }
 
+/// Parses specialization arms as long as they start with `default` or `fn`.
 fn parse_punctuated_arms(input: &ParseStream) -> Result<Punctuated<DispatchArmExpr, Token![,]>> {
     let mut arms = Punctuated::new();
     loop {
