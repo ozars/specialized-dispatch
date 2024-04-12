@@ -50,9 +50,9 @@ fn main() {
 }
 ```
 
-`example` function roughly expands to below code. Note that exact expansion is internal
-implementation detail. This example is provided to demonstrate how it works under the
-hood.
+`example` function roughly expands to below code. Note that exact expansion is
+internal implementation detail. This example is provided to demonstrate how it
+works under the hood.
 
 ```rust
 fn example<E>(expr: E) -> String {
@@ -86,7 +86,8 @@ The example above is [included][simple_example] in the repository.
 
 It can be run with `cargo run --example simple_example`.
 
-Expanded code can be inspected using [`cargo-expand`]: `cargo expand --example simple_example`.
+Expanded code can be inspected using [`cargo-expand`]: `cargo expand --example
+simple_example`.
 
 [simple_example]: examples/simple_example.rs
 [`cargo-expand`]: https://crates.io/crates/cargo-expand
