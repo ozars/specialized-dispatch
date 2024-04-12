@@ -66,21 +66,6 @@ impl ToTokens for FnArg {
 }
 
 /// Represents an arm for specialized dispatch macro.
-///
-/// # Example Inputs
-///
-/// **Generic type:** This arm type represents the blanket implementation for the default case.
-///
-/// ```
-/// fn <T>(_: T) => format!("default value")
-/// ```
-///
-/// **Concrete type:** This arm type represents the specialized implementation for a specific concrete
-/// type.
-///
-/// ```
-/// fn (v: u8) => format!("u8: {}")
-/// ```
 #[derive(Debug, Eq, PartialEq)]
 struct DispatchArmExpr {
     default: Option<Token![default]>,
@@ -128,16 +113,6 @@ impl Parse for DispatchArmExpr {
 
 /// This is entry point for handling arguments of `specialized_dispatch` macro. It parses arguments
 /// of the specialized dispatch macro and expands to the corresponding implementation.
-///
-/// # Example Input
-///
-/// ```
-/// E -> String,
-/// fn <T>(_: T) => format!("default value"),
-/// fn (v: u8) => format!("u8: {}", v),
-/// fn (v: u16) => format!("u16: {}", v),
-/// expr,
-/// ```
 #[derive(Debug, Eq, PartialEq)]
 struct SpecializedDispatchExpr {
     from_type: Type,
@@ -366,7 +341,6 @@ mod tests {
 
     #[test]
     fn parse_trailing_args() {
-        // TODO(ozars): Make sure argument count is correct across specializations and the call.
         let expr: SpecializedDispatchExpr = parse_quote! {
             E -> String,
             default fn <T>(_: T, arg1: u8, arg2: u16, arg3: &str) => format!("default value"),
