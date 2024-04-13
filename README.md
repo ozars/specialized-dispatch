@@ -178,7 +178,7 @@ Let's say you are implementing a deserializer. There might be certain types
 that work well with your own deserializer, while they have a default
 implementation for generic deserializers (or even `unimplemented!` by default).
 
-To simplify the example, we will create a water-down version of relevant
+To simplify the example, we will create a watered-down version of relevant
 `serde` traits.
 
 ```rust
@@ -231,6 +231,7 @@ impl<'de> Deserialize<'de> for MyAwesomeNode {
                 unimplemented!()
             },
             fn (mut deserializer: MyAwesomeDeserializer) => {
+                // We can call a method from the concrete implementation here!
                 deserializer.my_awesome_function()
             },
             deserializer
