@@ -280,3 +280,10 @@ compiler errors and in some cases Internal Compiler Errors (ICE). See TODO in
 This is very likely due to underlying `min_specialization` implementation not
 being very mature yet, though it's quite possible I botched something somewhere
 (Please file an issue if you figure out which :P).
+
+## Also see
+
+- [sagebind/castaway](https://github.com/sagebind/castaway): Safe, zero-cost
+  downcasting for limited compile-time specialization. This is an awesome
+  library I've just stumbled upon, which seems to be doing what is done here in
+  a more robust and stable way.
