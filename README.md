@@ -172,6 +172,77 @@ inspected with `cargo-expand`.
 
 [pass_args]: examples/pass_args.rs
 
+## Advanced Serdelike Example
+
+Let's say you are implementing a deserializer. There might be certain types
+that work well with your own deserializer, while they have a default
+implementation for generic deserializers (or even `unimplemented!` by default).
+
+To simplify the example, we will create a water-down version of relevant
+`serde` traits.
+
+```rust
+#![feature(min_specialization)]
+
+use specialized_dispatch::specialized_dispatch;
+
+/// A simplified version of `serde::de::Deserializer`.
+trait Deserializer<'de> {
+    type Error;
+
+    // Some generic deserializer functions...
+}
+
+/// A simplified version of `serde::de::Deserialize`.
+trait Deserialize<'de>: Sized {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>;
+}
+
+/// The node type we want to deserialize.
+#[derive(Debug)]
+struct MyAwesomeNode;
+
+/// Our custom deserializer.
+struct MyAwesomeDeserializer;
+
+impl MyAwesomeDeserializer {
+    fn my_awesome_function(&mut self) -> MyAwesomeNode {
+        MyAwesomeNode
+    }
+}
+
+impl Deserializer<'_> for MyAwesomeDeserializer {
+    type Error = ();
+    // Implement the generic deserializer functions...
+}
+
+impl<'de> Deserialize<'de> for MyAwesomeNode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(specialized_dispatch! {
+            D -> MyAwesomeNode,
+            // TODO(ozars): This causes rustc ICE.
+            // default fn <'de, T: Deserializer<'de>>(_deserializer: T) => {
+            default fn <T>(_deserializer: T) => {
+                unimplemented!()
+            },
+            fn (mut deserializer: MyAwesomeDeserializer) => {
+                deserializer.my_awesome_function()
+            },
+            deserializer
+        })
+    }
+}
+
+fn main() {
+    println!("{:?}", MyAwesomeNode::deserialize(MyAwesomeDeserializer));
+}
+```
+
 ## Limitations
 
 ### Requires nightly
@@ -192,3 +263,13 @@ refer to other variables in the scope where it's called from.
 However, extra arguments can be passed when they are explicitly declared in the
 macro. Please refer to [Passing Extra Arguments](#passing-extra-arguments)
 section.
+
+### Not working well with lifetimes
+
+I tried implementing lifetime support in various places, but I hit some
+compiler errors and in some cases Internal Compiler Errors (ICE). See TODO in
+[Advanced Serdelike Example](#advanced-serdelike-example).
+
+This is very likely due to underlying `min_specialization` implementation not
+being very mature yet, though it's quite possible I botched something somewhere
+(Please file an issue if you figure out which :P).
