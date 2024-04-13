@@ -44,16 +44,18 @@ impl ToTokens for FnArgName {
 /// Function argument with name and type.
 #[derive(Debug, Eq, PartialEq, Clone)]
 struct FnArg {
+    r#mut: Option<Token![mut]>,
     name: FnArgName,
     ty: Type,
 }
 
 impl Parse for FnArg {
     fn parse(input: ParseStream) -> Result<Self> {
+        let r#mut = input.parse()?;
         let name = input.parse()?;
         let _ = input.parse::<Token![:]>()?;
         let ty = input.parse()?;
-        Ok(Self { name, ty })
+        Ok(Self { r#mut, name, ty })
     }
 }
 
@@ -185,6 +187,7 @@ fn generate_trait_implementation(
     trait_name: &Ident,
     generic_params: Option<&Punctuated<GenericParam, Token![,]>>,
     FnArg {
+        r#mut: input_expr_mut,
         name: input_expr_name,
         ty: input_expr_type,
     }: &FnArg,
@@ -195,7 +198,7 @@ fn generate_trait_implementation(
     let generics = generic_params.map(|g| quote! {<#g>});
     quote! {
         impl #generics #trait_name<#input_expr_type> for #input_expr_type {
-            #default fn dispatch(#input_expr_name: #input_expr_type #(, #extra_args)*) -> #return_type {
+            #default fn dispatch(#input_expr_mut #input_expr_name: #input_expr_type #(, #extra_args)*) -> #return_type {
                 #body
             }
         }
@@ -404,6 +407,19 @@ mod tests {
                     parse_quote!(2u16),
                     parse_quote!("bugun_bayram_erken_kalkin_cocuklar")
                 ],
+            }
+        );
+    }
+
+    #[test]
+    fn parse_mut_arg() {
+        let arg: FnArg = parse_quote!(mut v: u8);
+        assert_eq!(
+            arg,
+            FnArg {
+                r#mut: Some(parse_quote!(mut)),
+                ty: parse_quote!(u8),
+                name: FnArgName::Ident(parse_quote!(v)),
             }
         );
     }
