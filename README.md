@@ -243,6 +243,12 @@ fn main() {
 }
 ```
 
+The example above is [included][serdelike_example] in the repository. It can be
+run with `cargo run --example serdelike_example` or inspected with
+`cargo-expand`.
+
+[serdelike_example]: examples/serdelike_example.rs
+
 ## Limitations
 
 ### Requires nightly
