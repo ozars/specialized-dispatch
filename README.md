@@ -281,9 +281,16 @@ This is very likely due to underlying `min_specialization` implementation not
 being very mature yet, though it's quite possible I botched something somewhere
 (Please file an issue if you figure out which :P).
 
-## Also see
+## See also
 
-- [sagebind/castaway](https://github.com/sagebind/castaway): Safe, zero-cost
-  downcasting for limited compile-time specialization. This is an awesome
-  library I've just stumbled upon, which seems to be doing what is done here in
-  a more robust and stable way.
+- [sagebind/castaway]: Safe, zero-cost downcasting for limited compile-time
+  specialization. This is an awesome library I've just stumbled upon, which
+  seems to be doing what is done here in a more robust and stable way.
+- [Autoref-based stable specialization]: A detailed case study for various methods
+  of specialization, introducing "autoref-based specalization".
+- [Generalized Autoref-Based Specialization]: Another method called
+  "*autoderef*-based specialization" which builds on top of the article above.
+
+[sagebind/castaway]: https://github.com/sagebind/castaway
+[Autoref-based stable specialization]: https://github.com/dtolnay/case-studies/tree/master/autoref-specialization
+[Generalized Autoref-Based Specialization]: https://lukaskalbertodt.github.io/2019/12/05/generalized-autoref-based-specialization.html 
